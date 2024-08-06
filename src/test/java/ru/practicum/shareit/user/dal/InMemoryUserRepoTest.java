@@ -3,9 +3,9 @@ package ru.practicum.shareit.user.dal;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.practicum.shareit.exception.DuplicatedDataException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.User;
+
+import java.util.Optional;
 
 class InMemoryUserRepoTest {
     UserRepository userRepository;
@@ -22,8 +22,8 @@ class InMemoryUserRepoTest {
 
     @Test
     void getUserById() {
-        long uid1 = userRepository.addUser(user1).getId();
-        long uid2 = userRepository.addUser(user2).getId();
+        long uid1 = userRepository.addUser(user1).get().getId();
+        long uid2 = userRepository.addUser(user2).get().getId();
 
         Assertions.assertEquals(user1.getEmail(), userRepository.getUserById(uid1).get().getEmail());
         Assertions.assertEquals(user2.getEmail(), userRepository.getUserById(uid2).get().getEmail());
@@ -48,56 +48,31 @@ class InMemoryUserRepoTest {
 
     @Test
     void addUser() {
-        User added = userRepository.addUser(user1);
-        Assertions.assertEquals(added.getEmail().trim().toUpperCase(), user1.getEmail().trim().toUpperCase());
-        Assertions.assertEquals(added.getName(), user1.getName());
-    }
-
-    @Test
-    void addUserBlankEmail() {
-        User blank = User.builder().name("Name 1").build();
-        Assertions.assertThrows(ValidationException.class, () -> userRepository.addUser(blank));
-    }
-
-    @Test
-    void addUserDuplicateEmail() {
-        userRepository.addUser(user1);
-        User duplicate = User.builder().email(user1.getEmail()).build();
-        Assertions.assertThrows(DuplicatedDataException.class, () -> userRepository.addUser(duplicate));
+        Optional<User> added = userRepository.addUser(user1);
+        Assertions.assertEquals(added.get().getEmail().trim().toUpperCase(), user1.getEmail().trim().toUpperCase());
+        Assertions.assertEquals(added.get().getName(), user1.getName());
     }
 
     @Test
     void updateUser() {
-        User added = userRepository.addUser(user1);
-        User updated = User.builder().id(added.getId()).email("upd@eml.com").name(added.getName()).build();
-        User requestedUpdated = userRepository.updateUser(updated);
-        Assertions.assertEquals(requestedUpdated.getEmail().trim().toUpperCase(), updated.getEmail().trim().toUpperCase());
-        Assertions.assertEquals(requestedUpdated.getName(), added.getName());
-        Assertions.assertEquals(requestedUpdated.getId(), added.getId());
-    }
-
-    @Test
-    void updateUserBlankEmail() {
-        User added = userRepository.addUser(user1);
-        User updated = User.builder().id(added.getId()).email("").name(added.getName()).build();
-        Assertions.assertThrows(ValidationException.class, () -> userRepository.updateUser(updated));
-    }
-
-    @Test
-    void updateUserDuplicateEmail() {
-        User added = userRepository.addUser(user1);
-        userRepository.addUser(user2);
-        userRepository.addUser(user3);
-        User updated = User.builder().id(added.getId()).email(user2.getEmail()).name(added.getName()).build();
-        Assertions.assertThrows(DuplicatedDataException.class, () -> userRepository.updateUser(updated));
+        Optional<User> added = userRepository.addUser(user1);
+        User updated = User.builder()
+                .id(added.get().getId())
+                .email("upd@eml.com")
+                .name(added.get().getName()).build();
+        Optional<User> requestedUpdated = userRepository.updateUser(updated);
+        Assertions.assertEquals(requestedUpdated.get().getEmail().trim().toUpperCase(),
+                updated.getEmail().trim().toUpperCase());
+        Assertions.assertEquals(requestedUpdated.get().getName(), added.get().getName());
+        Assertions.assertEquals(requestedUpdated.get().getId(), added.get().getId());
     }
 
     @Test
     void deleteUser() {
         Assertions.assertEquals(0, userRepository.getAllUsers().size());
-        long uid1 = userRepository.addUser(user1).getId();
-        long uid2 = userRepository.addUser(user2).getId();
-        long uid3 = userRepository.addUser(user3).getId();
+        long uid1 = userRepository.addUser(user1).get().getId();
+        long uid2 = userRepository.addUser(user2).get().getId();
+        long uid3 = userRepository.addUser(user3).get().getId();
         Assertions.assertEquals(3, userRepository.getAllUsers().size());
         userRepository.deleteUser(uid1);
         Assertions.assertEquals(2, userRepository.getAllUsers().size());

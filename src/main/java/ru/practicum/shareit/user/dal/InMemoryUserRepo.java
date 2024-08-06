@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.dal;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.DuplicatedDataException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
@@ -9,6 +10,7 @@ import ru.practicum.shareit.user.User;
 import java.util.*;
 
 @Slf4j
+@Repository
 public class InMemoryUserRepo implements UserRepository {
     private final Map<Long, User> storage = new HashMap<>();
     private long id = 0L;
@@ -45,42 +47,22 @@ public class InMemoryUserRepo implements UserRepository {
     }
 
     @Override
-    public User addUser(User user) {
+    public Optional<User> addUser(User user) {
         log.info("Add user {}", user);
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            log.error("Email is blank for user {}, can't add", user);
-            throw new ValidationException("Email is blank for user " + user + ", can't add");
-        }
-        if (getUserByEmail(user.getEmail()).isPresent()) {
-            log.error("Duplicate email for user {}, can't add", user);
-            throw new DuplicatedDataException("Duplicate email for user " + user + ", can't add");
-        }
         user.setId(getNextId());
         storage.put(user.getId(), user);
         log.info("User added: {}", user);
-        return user;
+        return Optional.of(user);
     }
 
     @Override
-    public User updateUser(User user) {
+    public Optional<User> updateUser(User user) {
         if (getUserById(user.getId()).isEmpty()) {
             log.error("User with id = {} doesn't exist, can't update", user.getId());
-            throw new NotFoundException("User with id =  " + user.getId() + " doesn't exist, can't update");
-        }
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            log.error("Email is blank for user {}, can't update", user);
-            throw new ValidationException("Email is blank for user " + user + ", can't update");
-        }
-
-        Optional<User> userWithNewEmail = storage.values().stream()
-                .filter(u -> u.getEmail().equalsIgnoreCase(user.getEmail()) && u.getId() != user.getId()).findFirst();
-
-        if (userWithNewEmail.isPresent()) {
-            log.error("Duplicate email: {}. This email is already in use by user:  {}", user.getEmail(), userWithNewEmail);
-            throw new DuplicatedDataException("Duplicate email for user " + user + ", can't update");
+            return Optional.empty();
         }
         storage.put(user.getId(), user);
-        return user;
+        return Optional.of(user);
     }
 
     @Override

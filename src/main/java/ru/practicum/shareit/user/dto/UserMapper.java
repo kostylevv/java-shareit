@@ -6,15 +6,27 @@ public class UserMapper {
     private UserMapper(){}
 
     public static UserDto mapToDto(User user) {
-        throw new UnsupportedOperationException();
+        return UserDto.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .build();
+
     }
 
     public static User mapToUser(NewUserDto dto) {
-        throw new UnsupportedOperationException();
+        return User.builder()
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .build();
     }
 
     public static User mapToUser(UpdatedUserDto dto) {
-        throw new UnsupportedOperationException();
+        return User.builder()
+                .id(dto.getId())
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .build();
     }
 
 
