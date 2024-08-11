@@ -81,15 +81,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto updateUser(UpdatedUserDto dto) {
         log.info("Updating user wit dto {}", dto);
-        if (dto == null || !isDtoValid(dto)) {
+        if (dto == null) {
+            log.error("Validation failed for dto: {} ", dto);
             throw new ValidationException("Validation failed for dto " + dto);
         }
         UserDto existing = getUser(dto.getId());
 
-        if (!existing.getEmail().equals(dto.getEmail())
+        if (dto.getName() == null && dto.getEmail() == null) {
+            log.error("Name and email are empty in updated user");
+            throw new ValidationException("Name and email are empty in updated user");
+        }
+
+        if (dto.getEmail() == null) {
+            dto.setEmail(existing.getEmail());
+        } else if (!existing.getEmail().equals(dto.getEmail())
                 && repository.getUserByEmail(dto.getEmail()).isPresent()) {
             log.error("Email {} already exists", dto.getEmail());
             throw new DuplicatedDataException("Email " + dto.getEmail() + "already exists");
+        }
+
+        if (dto.getName() == null) {
+            dto.setName(existing.getName());
         }
 
         Optional<User> user = repository.updateUser(UserMapper.mapToUser(dto));
@@ -112,25 +124,11 @@ public class UserServiceImpl implements UserService {
     }
 
     private boolean isDtoValid(NewUserDto dto) {
-       log.info("Validating {}", dto);
-       return isDtoValid(dto.getName(), dto.getEmail());
-    }
-
-    private boolean isDtoValid(UpdatedUserDto dto) {
-        log.info("Validating {}", dto);
-        if (dto.getId() == null) {
-            log.error("DTO ID is null");
-            return false;
-        }
-        return isDtoValid(dto.getName(), dto.getEmail());
-    }
-
-    private boolean isDtoValid(String name, String email) {
-        if (name == null || name.isBlank()) {
+        if (dto.getName() == null || dto.getName().isBlank()) {
             log.error("DTO's name is null or blank");
             return false;
         }
-        if (email == null || email.isBlank()) {
+        if (dto.getEmail() == null || dto.getEmail().isBlank()) {
             log.error("DTO's email is null or blank");
             return false;
         }

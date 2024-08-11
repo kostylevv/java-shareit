@@ -9,7 +9,11 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dal.InMemoryUserRepo;
 import ru.practicum.shareit.user.dal.UserRepository;
 import ru.practicum.shareit.user.dto.NewUserDto;
+import ru.practicum.shareit.user.dto.UpdatedUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserMapper;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -93,6 +97,62 @@ class UserServiceImplTest {
 
     @Test
     void updateUser() {
+        long uid1 = repository.addUser(user1).get().getId();
+        UpdatedUserDto updateRequest = UpdatedUserDto.builder()
+                .id(uid1)
+                .name("updated")
+                .email("updated@email.com")
+                .build();
+        UserDto updated = service.updateUser(updateRequest);
+        assertEquals(updateRequest.getEmail(), updated.getEmail());
+        assertEquals(updateRequest.getName(), updated.getName());
+        assertEquals(uid1, updated.getId());
+    }
+
+    @Test
+    void updateNameOnly() {
+        User added = repository.addUser(user1).get();
+        UpdatedUserDto updateRequest = UpdatedUserDto.builder()
+                .id(added.getId())
+                .name("updated only name")
+                .build();
+        UserDto updated = service.updateUser(updateRequest);
+        assertEquals(added.getEmail(), updated.getEmail());
+        assertEquals(updateRequest.getName(), updated.getName());
+        assertEquals(added.getId(), updated.getId());
+    }
+
+    @Test
+    void updateEmailOnly() {
+        User added = repository.addUser(user1).get();
+        UpdatedUserDto updateRequest = UpdatedUserDto.builder()
+                .id(added.getId())
+                .email("updated@email.only.com")
+                .build();
+        UserDto updated = service.updateUser(updateRequest);
+        assertEquals(updateRequest.getEmail(), updated.getEmail());
+        assertEquals(added.getName(), updated.getName());
+        assertEquals(added.getId(), updated.getId());
+    }
+
+    @Test
+    void updateNothingFails() {
+        User added = repository.addUser(user1).get();
+        UpdatedUserDto updateRequest = UpdatedUserDto.builder()
+                .id(added.getId())
+                .build();
+        assertThrows(ValidationException.class, () -> service.updateUser(updateRequest));
+    }
+
+    @Test
+    void updateWrongIdFails() {
+        User added = repository.addUser(user1).get();
+        UpdatedUserDto updateRequest = UpdatedUserDto.builder()
+                .id(12123L)
+                .name("updated wrong id")
+                .email("updated wrong email")
+                .build();
+        assertThrows(NotFoundException.class, () -> service.updateUser(updateRequest));
     }
 
     @Test
