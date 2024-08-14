@@ -15,6 +15,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -31,31 +32,27 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto createItem(NewItemDto itemDto) {
         log.info("Adding item from itemDto {}", itemDto);
-        try {
-            UserDto userDto = userService.getUser(itemDto.getOwnerId());
-        } catch (NotFoundException e) {
-            log.error("No user found with userId = {}, can't create item without owner", itemDto.getOwnerId());
-            throw new BadRequestException(e.getMessage());
-        }
+        UserDto userDto = userService.getUser(itemDto.getOwnerId());
         Item item = itemRepository.addItem(ItemMapper.mapToItem(itemDto));
         log.info("Added item {}", item);
         return ItemMapper.mapToDto(item);
-
     }
 
     @Override
     public ItemDto updateItem(UpdatedItemDto updatedItemDto) {
         log.info("Updating item {}", updatedItemDto);
-        try {
-            //TODO check owner
-            ItemDto existing = getItem(updatedItemDto.getId());
-            log.info("Existing item {}", existing);
-            Item item = ItemMapper.mapToItem(existing, updatedItemDto);
-            return ItemMapper.mapToDto(item);
-        } catch (NotFoundException e) {
-            log.error("No item found with id = {}", updatedItemDto.getId());
-            throw new BadRequestException(e.getMessage());
+        ItemDto existing = getItem(updatedItemDto.getId());
+        if (updatedItemDto.getOwnerId() != existing.getOwnerId()) {
+            log.error("Item with id {} has owner with id {}, " +
+                            "got update from owner with id {}. Can't update", existing.getId(),
+                    existing.getOwnerId(), updatedItemDto.getOwnerId());
+            throw new NotFoundException("Owner ID's does not match, can't update item");
         }
+        log.info("Existing item {}", existing);
+        Item item = ItemMapper.mapToItem(existing, updatedItemDto);
+        log.info("Updated item {}", item);
+        return ItemMapper.mapToDto(item);
+
     }
 
     @Override
@@ -80,15 +77,19 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Collection<ItemDto> findAllAvailableItemsByNameOrDescription(String searchTerm) {
         log.info("Finding available items by name or description containing search term {}:", searchTerm);
-        if (searchTerm != null && !searchTerm.isBlank()) {
-            return itemRepository.findAvailableItemsByNameOrDescription(searchTerm)
-                    .stream()
-                    .map(ItemMapper::mapToDto).toList();
-        } else {
-            log.error("Search term is null or blank");
-            throw new BadRequestException("Search term is null or blank");
+        if (searchTerm == null) {
+            log.error("Search term is null");
+            throw new BadRequestException("Search term is null");
         }
 
+        if (searchTerm.isEmpty() || searchTerm.isBlank()) {
+            log.warn("Search term is empty");
+            return List.of();
+        }
+
+        return itemRepository.findAvailableItemsByNameOrDescription(searchTerm)
+                .stream()
+                .map(ItemMapper::mapToDto).toList();
     }
 
     @Override
