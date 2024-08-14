@@ -46,10 +46,15 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto updateItem(UpdatedItemDto updatedItemDto) {
         log.info("Updating item {}", updatedItemDto);
-        ItemDto existing = getItem(updatedItemDto.getId());
-        log.info("Existing item {}", existing);
-        Item item = ItemMapper.mapToItem(existing, updatedItemDto);
-        return ItemMapper.mapToDto(item);
+        try {
+            ItemDto existing = getItem(updatedItemDto.getId());
+            log.info("Existing item {}", existing);
+            Item item = ItemMapper.mapToItem(existing, updatedItemDto);
+            return ItemMapper.mapToDto(item);
+        } catch (NotFoundException e) {
+            log.error("No item found with id = {}", updatedItemDto.getId());
+            throw new BadRequestException(e.getMessage());
+        }
     }
 
     @Override
