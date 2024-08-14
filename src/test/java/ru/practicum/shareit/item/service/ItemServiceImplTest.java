@@ -3,7 +3,7 @@ package ru.practicum.shareit.item.service;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dal.InMemoryItemRepo;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.NewItemDto;
@@ -43,7 +43,7 @@ class ItemServiceImplTest {
 
     @Test
     void createItemWithoutOwnerFail() {
-        Assertions.assertThrows(BadRequestException.class, () -> itemService.createItem(NewItemDto.builder()
+        Assertions.assertThrows(NotFoundException.class, () -> itemService.createItem(NewItemDto.builder()
                 .name("test item")
                 .description("desc")
                 .available(true)
@@ -105,7 +105,7 @@ class ItemServiceImplTest {
                 .name("updated name")
                 .description("updated desc")
                 .available(false).build();
-        Assertions.assertThrows(BadRequestException.class, () -> itemService.updateItem(updatedItemDto));
+        Assertions.assertThrows(NotFoundException.class, () -> itemService.updateItem(updatedItemDto));
     }
 
 }

@@ -3,7 +3,8 @@ package ru.practicum.shareit.item.dto;
 import ru.practicum.shareit.item.model.Item;
 
 public class ItemMapper {
-    private ItemMapper() {}
+    private ItemMapper() {
+    }
 
     public static ItemDto mapToDto(Item item) {
         ItemDto itemDto = ItemDto.builder()
