@@ -11,36 +11,36 @@ import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.dto.NewItemDto;
 import ru.practicum.shareit.item.dto.UpdatedItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.dal.UserRepository;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Collection;
-import java.util.Optional;
 
 @Service
 @Slf4j
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public ItemServiceImpl(@Autowired UserRepository userRepository, @Autowired ItemRepository itemRepository) {
-        this.userRepository = userRepository;
+    public ItemServiceImpl(@Autowired UserService userService, @Autowired ItemRepository itemRepository) {
         this.itemRepository = itemRepository;
+        this.userService = userService;
     }
 
 
     @Override
     public ItemDto createItem(NewItemDto itemDto) {
-        Optional<User> user = userRepository.getUserById(itemDto.getOwnerId());
-        if (user.isPresent()) {
-            log.info("Adding item from itemDto {}", itemDto);
-            Item item = itemRepository.addItem(ItemMapper.mapToItem(itemDto));
-            log.info("Added item {}", item);
-            return ItemMapper.mapToDto(item);
-        } else {
-            log.error("User with id = {} not found", itemDto.getOwnerId());
-            throw new NotFoundException("User with id " + itemDto.getOwnerId() + " not found");
+        log.info("Adding item from itemDto {}", itemDto);
+        try {
+            UserDto userDto = userService.getUser(itemDto.getOwnerId());
+        } catch (NotFoundException e) {
+            log.error("No user found with userId = {}, can't create item without owner", itemDto.getOwnerId());
+            throw new BadRequestException(e.getMessage());
         }
+        Item item = itemRepository.addItem(ItemMapper.mapToItem(itemDto));
+        log.info("Added item {}", item);
+        return ItemMapper.mapToDto(item);
+
     }
 
     @Override
@@ -61,13 +61,14 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Collection<ItemDto> getAllUserItems(long userId) {
         log.info("Getting user items with userId = {}", userId);
-        Optional<User> user = userRepository.getUserById(userId);
-        if (user.isPresent()) {
-            return itemRepository.getAllUserItems(userId).stream().map(ItemMapper::mapToDto).toList();
-        } else {
-            log.error("User with id = {} not found", userId);
-            throw new NotFoundException("User with id " + userId + " not found");
+        try {
+            UserDto userDto = userService.getUser(userId);
+        } catch (NotFoundException e) {
+            log.error("No user found with userId = {}", userId);
+            throw new BadRequestException(e.getMessage());
         }
+        return itemRepository.getAllUserItems(userId).stream().map(ItemMapper::mapToDto).toList();
+
     }
 
     @Override

@@ -1,42 +1,53 @@
 package ru.practicum.shareit.item.service;
 
+import org.checkerframework.checker.units.qual.A;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.item.dal.InMemoryItemRepo;
-import ru.practicum.shareit.item.dal.ItemRepository;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.NewItemDto;
 import ru.practicum.shareit.user.dal.InMemoryUserRepo;
-import ru.practicum.shareit.user.dal.UserRepository;
+import ru.practicum.shareit.user.dto.NewUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class ItemServiceImplTest {
-    UserRepository userRepo;
-    ItemRepository itemRepository;
-
     UserService userService;
     ItemService itemService;
-    User user1, user2;
 
     @BeforeEach
     void beforeEach() {
-        itemRepository = new InMemoryItemRepo();
-        userRepo = new InMemoryUserRepo();
-        itemService = new ItemServiceImpl(userRepo, itemRepository);
-        userService = new UserServiceImpl(userRepo);
-
-        user1 = User.builder().name("Name 1").email("n1@e.com").build();
-        user2 = User.builder().name("Name 2").email("n2@e.com").build();
-
+        userService = new UserServiceImpl(new InMemoryUserRepo());
+        itemService = new ItemServiceImpl(userService, new InMemoryItemRepo());
     }
 
     @Test
     void createItem() {
+        UserDto user = userService.createUser(NewUserDto.builder()
+                .email("test@test.com")
+                .name("Test")
+                .build());
+        ItemDto item = itemService.createItem(NewItemDto.builder()
+                .name("test item")
+                .description("desc")
+                .available(true)
+                .ownerId(user.getId()).build());
+        Assertions.assertEquals(user.getId(), item.getOwnerId());
+        Assertions.assertEquals("test item", item.getName());
+        Assertions.assertEquals("desc", item.getDescription());
     }
 
+    @Test
+    void createItemWithoutOwnerFail() {
+        Assertions.assertThrows(BadRequestException.class, () -> itemService.createItem(NewItemDto.builder()
+                .name("test item")
+                .description("desc")
+                .available(true)
+                .build()));
+    }
     @Test
     void updateItem() {
     }
