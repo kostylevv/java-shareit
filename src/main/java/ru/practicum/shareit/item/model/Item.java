@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class Item {
-    long id;
+    Long id;
     String name;
     String description;
     boolean available;

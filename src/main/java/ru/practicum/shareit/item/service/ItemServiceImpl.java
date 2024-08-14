@@ -33,7 +33,9 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto createItem(NewItemDto itemDto) {
         Optional<User> user = userRepository.getUserById(itemDto.getOwnerId());
         if (user.isPresent()) {
+            log.info("Adding item from itemDto {}", itemDto);
             Item item = itemRepository.addItem(ItemMapper.mapToItem(itemDto));
+            log.info("Added item {}", item);
             return ItemMapper.mapToDto(item);
         } else {
             log.error("User with id = {} not found", itemDto.getOwnerId());
@@ -43,12 +45,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto updateItem(UpdatedItemDto itemDto) {
-        return null;
+        ItemDto existing = getItem(itemDto.getId());
+        //return new ItemDto()''
     }
 
     @Override
     public ItemDto getItem(long id) {
-        return null;
+        log.info("Getting item with id = {}", id);
+        return ItemMapper.mapToDto(itemRepository.getItem(id));
     }
 
     @Override
