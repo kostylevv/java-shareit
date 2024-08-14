@@ -32,4 +32,36 @@ public class ItemMapper {
         return item;
     }
 
+    public static Item mapToItem(ItemDto existing, UpdatedItemDto updatedItemDto) {
+        String name, description;
+        boolean available;
+
+        if (updatedItemDto.getName() == null || updatedItemDto.getName().isEmpty()) {
+            name = existing.getName();
+        } else {
+            name = updatedItemDto.getName();
+        }
+
+        if (updatedItemDto.getDescription() == null || updatedItemDto.getDescription().isEmpty()) {
+            description = existing.getDescription();
+        } else {
+            description = updatedItemDto.getDescription();
+        }
+
+        if (updatedItemDto.getAvailable() == null) {
+            available = existing.isAvailable();
+        } else {
+            available = updatedItemDto.getAvailable();
+        }
+
+        return Item.builder()
+                .id(existing.getId())
+                .name(name)
+                .description(description)
+                .available(available)
+                .ownerId(existing.getOwnerId())
+                .itemRequestId(existing.getItemRequestId())
+                .build();
+    }
+
 }

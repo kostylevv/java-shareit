@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dal.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -14,7 +15,6 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dal.UserRepository;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -44,9 +44,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto updateItem(UpdatedItemDto itemDto) {
-        ItemDto existing = getItem(itemDto.getId());
-        //return new ItemDto()''
+    public ItemDto updateItem(UpdatedItemDto updatedItemDto) {
+        log.info("Updating item {}", updatedItemDto);
+        ItemDto existing = getItem(updatedItemDto.getId());
+        log.info("Existing item {}", existing);
+        Item item = ItemMapper.mapToItem(existing, updatedItemDto);
+        return ItemMapper.mapToDto(item);
     }
 
     @Override
@@ -57,16 +60,33 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDto> getAllUserItems(long userId) {
-        return List.of();
+        log.info("Getting user items with userId = {}", userId);
+        Optional<User> user = userRepository.getUserById(userId);
+        if (user.isPresent()) {
+            return itemRepository.getAllUserItems(userId).stream().map(ItemMapper::mapToDto).toList();
+        } else {
+            log.error("User with id = {} not found", userId);
+            throw new NotFoundException("User with id " + userId + " not found");
+        }
     }
 
     @Override
     public Collection<ItemDto> findAllAvailableItemsByNameOrDescription(String searchTerm) {
-        return List.of();
+        log.info("Finding available items by name or description containing search term {}:", searchTerm);
+        if (searchTerm != null && !searchTerm.isBlank()) {
+            return itemRepository.findAvailableItemsByNameOrDescription(searchTerm)
+                    .stream()
+                    .map(ItemMapper::mapToDto).toList();
+        } else {
+            log.error("Search term is null or blank");
+            throw new BadRequestException("Search term is null or blank");
+        }
+
     }
 
     @Override
     public void deleteItem(long id) {
-
+        log.info("Deleting item with id = {}", id);
+        itemRepository.deleteItem(id);
     }
 }
