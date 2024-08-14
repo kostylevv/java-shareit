@@ -11,9 +11,6 @@ import ru.practicum.shareit.user.dal.UserRepository;
 import ru.practicum.shareit.user.dto.NewUserDto;
 import ru.practicum.shareit.user.dto.UpdatedUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.dto.UserMapper;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
