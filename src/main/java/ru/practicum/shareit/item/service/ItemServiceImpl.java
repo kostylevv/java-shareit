@@ -47,6 +47,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto updateItem(UpdatedItemDto updatedItemDto) {
         log.info("Updating item {}", updatedItemDto);
         try {
+            //TODO check owner
             ItemDto existing = getItem(updatedItemDto.getId());
             log.info("Existing item {}", existing);
             Item item = ItemMapper.mapToItem(existing, updatedItemDto);
