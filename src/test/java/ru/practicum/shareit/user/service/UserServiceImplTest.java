@@ -68,22 +68,6 @@ class UserServiceImplTest {
     }
 
     @Test
-    void createUserNoEmailNotOk() {
-        repository.addUser(user1);
-        NewUserDto newUserDto = NewUserDto.builder()
-                .name("new name").build();
-        assertThrows(ValidationException.class, () -> service.createUser(newUserDto));
-    }
-
-    @Test
-    void createUserNoNameNotOk() {
-        repository.addUser(user1);
-        NewUserDto newUserDto = NewUserDto.builder()
-                .email("e@mail.com").build();
-        assertThrows(ValidationException.class, () -> service.createUser(newUserDto));
-    }
-
-    @Test
     void createUserDuplicateEmailNotOk() {
         repository.addUser(user1);
         NewUserDto newUserDto = NewUserDto.builder()

@@ -59,9 +59,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto createUser(NewUserDto dto) {
         log.info("Creating user wit dto {}", dto);
-        if (dto == null || !isDtoValid(dto)) {
-            throw new ValidationException("Validation failed for dto " + dto);
-        }
 
         if (repository.getUserByEmail(dto.getEmail()).isPresent()) {
             log.error("Email {} already exists", dto.getEmail());
@@ -123,15 +120,4 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private boolean isDtoValid(NewUserDto dto) {
-        if (dto.getName() == null || dto.getName().isBlank()) {
-            log.error("DTO's name is null or blank");
-            return false;
-        }
-        if (dto.getEmail() == null || dto.getEmail().isBlank()) {
-            log.error("DTO's email is null or blank");
-            return false;
-        }
-        return true;
-    }
 }
