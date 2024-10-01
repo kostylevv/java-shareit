@@ -5,11 +5,11 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ItemDto {
+public class UpdatedItemDto {
     private long id;
     private String name;
     private String description;
-    private boolean available;
+    private Boolean available;
     private long ownerId;
-    private Long itemRequestId;
+    private long itemRequestId;
 }
