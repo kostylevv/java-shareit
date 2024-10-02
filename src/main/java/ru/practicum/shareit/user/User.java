@@ -1,11 +1,19 @@
 package ru.practicum.shareit.user;
 
-import lombok.Builder;
-import lombok.Data;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
-@Builder
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@Table(name = "users")
 public class User {
+    @Id
     private long id;
     private String name;
     private String email; //unique
