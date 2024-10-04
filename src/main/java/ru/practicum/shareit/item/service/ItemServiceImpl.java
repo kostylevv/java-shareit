@@ -12,6 +12,7 @@ import ru.practicum.shareit.item.dto.NewItemDto;
 import ru.practicum.shareit.item.dto.UpdatedItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Collection;
@@ -32,8 +33,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto createItem(NewItemDto itemDto) {
         log.info("Adding item from itemDto {}", itemDto);
-        UserDto userDto = userService.getUser(itemDto.getOwnerId());
-        Item item = itemRepository.addItem(ItemMapper.mapToItem(itemDto));
+        UserDto userDto = userService.getUser(itemDto.getUserId());
+        Item item = itemRepository.save(ItemMapper.mapToItem(itemDto, UserMapper.mapToUser(userDto)));
         log.info("Added item {}", item);
         return ItemMapper.mapToDto(item);
     }
@@ -41,24 +42,26 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto updateItem(UpdatedItemDto updatedItemDto) {
         log.info("Updating item {}", updatedItemDto);
-        ItemDto existing = getItem(updatedItemDto.getId());
-        if (updatedItemDto.getOwnerId() != existing.getOwnerId()) {
+        Item existing = itemRepository.findById(updatedItemDto.getId()).orElseThrow();
+
+        if (updatedItemDto.getOwnerId() != existing.getOwner().getId()) {
             log.error("Item with id {} has owner with id {}, " +
                             "got update from owner with id {}. Can't update", existing.getId(),
-                    existing.getOwnerId(), updatedItemDto.getOwnerId());
+                    existing.getOwner().getId(), updatedItemDto.getOwnerId());
             throw new NotFoundException("Owner ID's does not match, can't update item");
         }
         log.info("Existing item {}", existing);
-        Item item = ItemMapper.mapToItem(existing, updatedItemDto);
-        log.info("Updated item {}", item);
-        return ItemMapper.mapToDto(item);
+        Item updatedItem = ItemMapper.mapToItem(existing, updatedItemDto);
+        log.info("Updated item {}", updatedItem);
+        itemRepository.save(updatedItem);
+        return ItemMapper.mapToDto(updatedItem);
 
     }
 
     @Override
     public ItemDto getItem(long id) {
         log.info("Getting item with id = {}", id);
-        return ItemMapper.mapToDto(itemRepository.getItem(id));
+        return ItemMapper.mapToDto(itemRepository.findById(id).orElseThrow());
     }
 
     @Override
@@ -70,7 +73,7 @@ public class ItemServiceImpl implements ItemService {
             log.error("No user found with userId = {}", userId);
             throw new BadRequestException(e.getMessage());
         }
-        return itemRepository.getAllUserItems(userId).stream().map(ItemMapper::mapToDto).toList();
+        return itemRepository.findByOwnerId(userId).stream().map(ItemMapper::mapToDto).toList();
 
     }
 
@@ -87,7 +90,7 @@ public class ItemServiceImpl implements ItemService {
             return List.of();
         }
 
-        return itemRepository.findAvailableItemsByNameOrDescription(searchTerm)
+        return itemRepository.search(searchTerm)
                 .stream()
                 .map(ItemMapper::mapToDto).toList();
     }
@@ -95,6 +98,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public void deleteItem(long id) {
         log.info("Deleting item with id = {}", id);
-        itemRepository.deleteItem(id);
+        itemRepository.deleteById(id);
     }
 }

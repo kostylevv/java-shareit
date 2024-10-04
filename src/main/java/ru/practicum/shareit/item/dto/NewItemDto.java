@@ -20,7 +20,7 @@ public class NewItemDto {
 
     @NotNull
     @PositiveOrZero
-    private long ownerId;
+    private long userId;
 
     private long itemRequestId;
 }

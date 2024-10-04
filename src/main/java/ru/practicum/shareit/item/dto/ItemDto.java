@@ -10,6 +10,6 @@ public class ItemDto {
     private String name;
     private String description;
     private boolean available;
-    private long ownerId;
+    private long userId;
     private Long itemRequestId;
 }

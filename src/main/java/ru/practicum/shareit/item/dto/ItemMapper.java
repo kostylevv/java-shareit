@@ -1,39 +1,32 @@
 package ru.practicum.shareit.item.dto;
 
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.User;
 
 public class ItemMapper {
     private ItemMapper() {
     }
 
     public static ItemDto mapToDto(Item item) {
-        ItemDto itemDto = ItemDto.builder()
+        return ItemDto.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.isAvailable())
-                .ownerId(item.getOwnerId())
+                .userId(item.getOwner().getId())
                 .build();
-        if (item.getItemRequestId() != null) {
-            itemDto.setItemRequestId(item.getItemRequestId());
-        }
-        return itemDto;
     }
 
-    public static Item mapToItem(NewItemDto newItemDto) {
-        Item item = Item.builder()
-                .name(newItemDto.getName())
-                .description(newItemDto.getDescription())
-                .available(newItemDto.getAvailable())
-                .ownerId(newItemDto.getOwnerId())
-                .build();
-        if (newItemDto.getItemRequestId() > 0L) {
-            item.setItemRequestId(newItemDto.getItemRequestId());
-        }
+    public static Item mapToItem(NewItemDto newItemDto, User user) {
+        Item item = new Item();
+        item.setName(newItemDto.getName());
+        item.setDescription(newItemDto.getDescription());
+        item.setOwner(user);
+        item.setAvailable(newItemDto.getAvailable());
         return item;
     }
 
-    public static Item mapToItem(ItemDto existing, UpdatedItemDto updatedItemDto) {
+    public static Item mapToItem(Item existing, UpdatedItemDto updatedItemDto) {
         String name, description;
         boolean available;
 
@@ -55,14 +48,14 @@ public class ItemMapper {
             available = updatedItemDto.getAvailable();
         }
 
-        return Item.builder()
-                .id(existing.getId())
-                .name(name)
-                .description(description)
-                .available(available)
-                .ownerId(existing.getOwnerId())
-                .itemRequestId(existing.getItemRequestId())
-                .build();
+        Item item = new Item();
+        item.setId(existing.getId());
+        item.setName(name);
+        item.setDescription(description);
+        item.setAvailable(available);
+        item.setItemRequest(existing.getItemRequest());
+        item.setOwner(existing.getOwner());
+        return item;
     }
 
 }

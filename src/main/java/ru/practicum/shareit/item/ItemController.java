@@ -46,7 +46,7 @@ public class ItemController {
 
     @PostMapping
     public ItemDto create(@RequestHeader(HEADER_PARAM_UID) @PositiveOrZero long userId, @Valid @RequestBody NewItemDto item) {
-        item.setOwnerId(userId);
+        item.setUserId(userId);
         return service.createItem(item);
     }
 
